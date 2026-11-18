@@ -21,9 +21,12 @@ from ..models import (
     Events,
     Fundamentals,
     InsiderActivity,
+    Levels,
+    LevelsRequest,
     Ownership,
     Profile,
 )
+from ..technicals import Bar
 
 log = logging.getLogger("market_intel")
 
@@ -100,5 +103,23 @@ def create_app(mi: MarketIntel | None = None) -> FastAPI:
         symbol: Symbol, start: date | None = None, end: date | None = None
     ) -> CorporateActions:
         return mi.corporate_actions(symbol, start, end)
+
+    @app.get("/v1/tickers/{symbol}/levels", response_model=Levels, dependencies=deps,
+             tags=["technicals"])
+    def levels(
+        symbol: Symbol,
+        max_levels: Annotated[int, Query(ge=1, le=20)] = 6,
+    ) -> Levels:
+        """Levels from one year of Yahoo daily history (503 when Yahoo is disabled)."""
+        return mi.levels(symbol, max_levels=max_levels)
+
+    @app.post("/v1/technicals/levels", response_model=Levels, dependencies=deps,
+              tags=["technicals"])
+    def levels_from_bars(req: LevelsRequest) -> Levels:
+        """Levels and a trend channel from bars you supply (e.g. your own Alpaca daily bars).
+        No upstream call is made, so this works with Yahoo switched off."""
+        bars = [Bar(t=b.t, o=b.o, h=b.h, l=b.l, c=b.c, v=b.v) for b in req.bars]
+        return mi.levels(req.symbol, bars, window=req.window, max_levels=req.max_levels,
+                         channel_bars=req.channel_bars)
 
     return app

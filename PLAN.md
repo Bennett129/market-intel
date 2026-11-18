@@ -159,6 +159,6 @@ mi.history("estimates", "NVDA", start="2026-01-01")   # point-in-time, no look-a
 | Phase | Deliverable |
 |---|---|
 | 1 | Core models, Yahoo provider, cache, rate limit; datasets: profile, fundamentals, insiders, ownership, analysts, estimates, events, corporate actions; FastAPI + OpenAPI; tests with fixtures |
-| 2 | Options summary, short interest, sectors/market, screener, technicals (levels/channels) |
+| 2 | Options summary, short interest, sectors/market, screener, technicals (levels/channels ✅) |
 | 3 | Snapshot store, history endpoint, change detection + webhooks, SEC EDGAR backup provider |
 | 4 | Signals v1, CLI, published package + Docker image, docs for bot usage |

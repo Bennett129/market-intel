@@ -7,7 +7,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from datetime import date
 from typing import Any, TypeVar
 
@@ -22,6 +22,7 @@ from .datasets.fundamentals import build_fundamentals
 from .datasets.insiders import build_insiders
 from .datasets.ownership import build_ownership
 from .datasets.profile import build_profile
+from .datasets.technicals import build_levels
 from .models import (
     Analysts,
     CorporateActions,
@@ -30,11 +31,13 @@ from .models import (
     Events,
     Fundamentals,
     InsiderActivity,
+    Levels,
     Meta,
     Ownership,
     Profile,
 )
 from .providers import SecClient, YahooClient
+from .technicals import Bar
 
 D = TypeVar("D", bound=Dataset)
 
@@ -83,6 +86,11 @@ class MarketIntel:
     ) -> CorporateActions:
         return self._run(lambda: build_corporate_actions(self.yahoo, symbol, start, end))
 
+    def levels(self, symbol: str, bars: Sequence[Bar] | None = None, **params: Any) -> Levels:
+        """Support/resistance and trend channel. Pass your own ``bars`` (any source, no network
+        call), or leave them out to use one year of Yahoo daily history."""
+        return self._run(lambda: build_levels(self.yahoo, symbol, bars, **params))
+
     # -- status ----------------------------------------------------------------------------
 
     def status(self) -> dict[str, Any]:
@@ -102,5 +110,7 @@ class MarketIntel:
                 "analysts": "yahoo" if self.yahoo.enabled else "unavailable (yahoo disabled)",
                 "estimates": "yahoo" if self.yahoo.enabled else "unavailable (yahoo disabled)",
                 "corporate_actions": "yahoo" if self.yahoo.enabled else "unavailable (yahoo disabled)",
+                "levels": "consumer-supplied bars (POST /v1/technicals/levels)"
+                + (" or yahoo daily history" if self.yahoo.enabled else ""),
             },
         }

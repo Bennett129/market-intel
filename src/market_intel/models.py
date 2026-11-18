@@ -286,3 +286,57 @@ class CorporateAction(BaseModel):
 
 class CorporateActions(Dataset):
     actions: list[CorporateAction] = Field(default_factory=list)
+
+
+# --- Technicals ---------------------------------------------------------------------------
+
+
+class Level(BaseModel):
+    price: float
+    kind: Literal["support", "resistance"]
+    strength: float  # 0..1, relative to the strongest level returned
+    touches: int
+    touch_times: list[datetime] = Field(default_factory=list)
+    first: datetime
+    last: datetime
+    broken: bool = False  # price has closed through it since the last touch
+
+
+class ChannelAnchor(BaseModel):
+    t: datetime
+    price: float
+
+
+class Channel(BaseModel):
+    direction: Literal["up", "down", "flat"]
+    slope_per_day: float
+    r2: float
+    upper: list[ChannelAnchor]
+    middle: list[ChannelAnchor]
+    lower: list[ChannelAnchor]
+
+
+class Levels(Dataset):
+    levels: list[Level] = Field(default_factory=list)
+    channel: Channel | None = None
+    atr: float | None = None
+    last_close: float | None = None
+    bars_used: int = 0
+    pivots: int = 0
+
+
+class BarIn(BaseModel):
+    t: datetime
+    o: float
+    h: float
+    l: float
+    c: float
+    v: float = 0.0
+
+
+class LevelsRequest(BaseModel):
+    symbol: str = Field(default="", max_length=15)
+    bars: list[BarIn] = Field(min_length=1, max_length=5000)
+    window: int = Field(default=3, ge=1, le=20)
+    max_levels: int = Field(default=6, ge=1, le=20)
+    channel_bars: int = Field(default=120, ge=10, le=2000)

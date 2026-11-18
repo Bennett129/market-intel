@@ -30,6 +30,8 @@ and no request is sent to Yahoo. Check `/health` to see the current state.
 | Analysts | `/v1/tickers/{sym}/analysts` | Yahoo | `503 dataset_unavailable` |
 | Estimates | `/v1/tickers/{sym}/estimates` | Yahoo | `503 dataset_unavailable` |
 | Corporate actions | `/v1/tickers/{sym}/corporate-actions` | Yahoo | `503 dataset_unavailable` |
+| Support/resistance + channel | `POST /v1/technicals/levels` (your bars) | works | works (no upstream call) |
+| Support/resistance from Yahoo history | `/v1/tickers/{sym}/levels` | Yahoo daily history | `503 dataset_unavailable` |
 
 Every response includes `meta`: `sources`, `fetched_at`, `stale`, `warnings` and `yahoo_enabled`.
 When a dataset is degraded (e.g. Yahoo is off), `meta.warnings` says what was left out.
@@ -45,6 +47,14 @@ print(acts.summary[1])          # 90-day open-market buy/sell summary
 f = mi.fundamentals("NVDA", price=180.0)
 print(f.ttm["revenue"], f.ratios["pe"])
 ```
+
+## Technicals
+
+`POST /v1/technicals/levels` takes `{symbol, bars: [{t, o, h, l, c, v}], window?, max_levels?,
+channel_bars?}` and returns support/resistance levels (price, touches, strength 0..1, whether it
+has been broken since) and a trend channel (upper/middle/lower lines as two anchor points each).
+It's a pure function of the bars you send, so it works with any data source and is reproducible
+in backtests. In Python: `mi.levels("AAPL", bars)`.
 
 ## Conventions
 - **Percentages are fractions** (`0.058` = 5.8%) everywhere, whatever the upstream format.
