@@ -8,4 +8,5 @@ RUN uv sync --frozen --no-dev
 ENV MI_CACHE_DIR=/data/cache
 VOLUME /data
 EXPOSE 8001
-CMD ["uv", "run", "--no-dev", "uvicorn", "--factory", "market_intel.api.app:create_app", "--host", "0.0.0.0", "--port", "8001"]
+# Hosting platforms pass the port in $PORT; locally it is 8001.
+CMD ["sh", "-c", "exec uv run --no-dev uvicorn --factory market_intel.api.app:create_app --host 0.0.0.0 --port ${PORT:-8001}"]
