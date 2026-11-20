@@ -9,5 +9,6 @@ RUN uv sync --frozen --no-dev
 # Volume in the dashboard; docker compose: the mi-data volume). Railway rejects VOLUME here.
 ENV MI_CACHE_DIR=/data/cache
 EXPOSE 8001
-# Hosting platforms pass the port in $PORT; locally it is 8001.
-CMD ["sh", "-c", "exec uv run --no-dev uvicorn --factory market_intel.api.app:create_app --host 0.0.0.0 --port ${PORT:-8001}"]
+# Run the venv's uvicorn directly: `uv run` would re-check and rebuild the project on every
+# start. Hosting platforms pass the port in $PORT; locally it is 8001.
+CMD ["sh", "-c", "exec /app/.venv/bin/uvicorn --factory market_intel.api.app:create_app --host 0.0.0.0 --port ${PORT:-8001}"]
